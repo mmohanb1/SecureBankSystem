@@ -1,0 +1,9 @@
+*.class
+*.jar
+*.key
+*.pub
+Makefile
+passwd
+balance
+ssh_key
+paramFile
