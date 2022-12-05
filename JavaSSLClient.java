@@ -165,7 +165,11 @@ public class JavaSSLClient {
                     }
                     else if(option.equals("2")) //exit
                     {
-                        
+                        out.println("2");
+                        //bufferedReader.close();
+                        //out.close();
+                        socket.close();
+
                     }
                     else
                     {

@@ -185,9 +185,16 @@ public class JavaSSLServer {
                     {
                         // mapOfUserBalance.put(currUser, mapOfUserBalance.get(currUser)-Double.parseDouble(arr[1]));
                         // mapOfUserBalance.put(arr[0], mapOfUserBalance.get(arr[0])+Double.parseDouble(arr[1]));
-                        updateBalanceOfUser(currUser, balOfCurrUser - Double.parseDouble(arr[1]));
-                        updateBalanceOfUser(arr[0], getBalanceOfUser(arr[0]) + Double.parseDouble(arr[1]));
-                        out.println("1");
+                        
+                        if(mapOfUserPass.containsKey(arr[0])){
+                        Double balOfUser = getBalanceOfUser(arr[0]);
+                        
+                            updateBalanceOfUser(currUser, balOfCurrUser - Double.parseDouble(arr[1]));
+                            updateBalanceOfUser(arr[0], getBalanceOfUser(arr[0]) + Double.parseDouble(arr[1]));
+                            out.println("1");
+                        }
+                        else
+                            out.println("0");
                     }
                     else{
                         out.println("0");
@@ -195,7 +202,7 @@ public class JavaSSLServer {
                 }
                 else//exit
                 {
-                    
+                    //socket.close();
                 }
                     
             //System.out.println("Closed");
@@ -221,6 +228,7 @@ public class JavaSSLServer {
     private static Double getBalanceOfUser(String user)
     {
         Double ret = 0.0;
+        
         try
         {
         String file ="balance";
@@ -234,7 +242,7 @@ public class JavaSSLServer {
                 if(userInfo.length == 2)
                     if(userInfo[0].equals(user))
                         {
-                            ret = Double.parseDouble(userInfo[1]);
+                            ret = Double.parseDouble(userInfo[1]);                            
                             break;
                         }
            
@@ -296,11 +304,11 @@ public class JavaSSLServer {
         String line;
         while((line = reader.readLine()) != null)
         {
-            String [] user = line.split(":");
+            String [] user = line.split(" ");
             if(user.length == 2)
                 mapOfUserPass.put(user[0],user[1]);
         }
-        System.out.println("In readPasswdFile --> map.get(alice) = "+mapOfUserPass.get("alice"));
+        //System.out.println("In readPasswdFile --> map.get(alice) = "+mapOfUserPass.get("alice"));
         reader.close();
         }
         catch(IOException ex)
