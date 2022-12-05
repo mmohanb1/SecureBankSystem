@@ -185,7 +185,15 @@ public class JavaSSLServer {
                     {
                         // mapOfUserBalance.put(currUser, mapOfUserBalance.get(currUser)-Double.parseDouble(arr[1]));
                         // mapOfUserBalance.put(arr[0], mapOfUserBalance.get(arr[0])+Double.parseDouble(arr[1]));
-                        
+                        Path file = Paths.get("passwd");
+                        // read all lines of the file
+                        long countLines = Files.lines(file).count();
+                        // System.out.println("countLines in passwd file = "+countLines);
+                        // System.out.println("Size of mapOfUserPass = "+mapOfUserPass.size());
+                        if(countLines > mapOfUserPass.size())
+                        {
+                            readPasswdFile();
+                        }
                         if(mapOfUserPass.containsKey(arr[0])){
                         Double balOfUser = getBalanceOfUser(arr[0]);
                         
