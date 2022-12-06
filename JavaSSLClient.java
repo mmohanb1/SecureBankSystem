@@ -94,13 +94,14 @@ public class JavaSSLClient {
                 String idPass = userId+" "+userPassword;
 
 
-                byte[] iv = new byte[16];
-                new SecureRandom().nextBytes(iv);
+                //byte[] iv = new byte[16];
+                byte[] iv = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8 };
+                //new SecureRandom().nextBytes(iv);
                 //write iv to a file
-                FileOutputStream fs = new FileOutputStream(new File("paramFile"));
-                BufferedOutputStream bos = new BufferedOutputStream(fs);
-                bos.write(iv);
-                bos.close();
+                // FileOutputStream fs = new FileOutputStream(new File("paramFile"));
+                // BufferedOutputStream bos = new BufferedOutputStream(fs);
+                // bos.write(iv);
+                // bos.close();
                 //return new IvParameterSpec(iv);
                 //System.out.println("iv.length = "+iv.length);
 //                String ivStr = iv.toString();
@@ -169,6 +170,7 @@ public class JavaSSLClient {
                         //bufferedReader.close();
                         //out.close();
                         socket.close();
+                        break;
 
                     }
                     else
@@ -176,6 +178,8 @@ public class JavaSSLClient {
                         System.out.println("Please enter valid option.");
                     }
                 }
+                bufferedReader.close();
+                out.close();
             
             
         } catch (Exception ex) {

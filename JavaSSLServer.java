@@ -88,7 +88,8 @@ public class JavaSSLServer {
                     sslServerSocketFactory.createServerSocket(port);
             System.out.println("SSL ServerSocket started");
             System.out.println(sslServerSocket.toString());
-            
+            while(!sslServerSocket.isClosed())
+            {
             Socket socket = sslServerSocket.accept();
             System.out.println("ServerSocket accepted");
             
@@ -112,19 +113,20 @@ public class JavaSSLServer {
                     String aesAlgorithm = "AES/CBC/PKCS5Padding";
                     SecretKey secretKey = convertStringToSecretKeyto(decryptedSymmKey);
                     //byte[] iv = decryptedSymmKey.split("--")[1].getBytes(StandardCharsets.UTF_8);
-                    byte[] iv = new byte[16];
-                    if(!mapOfIV.containsKey("IV"))
-                    {
-                        DataInputStream dis = null;
-                        dis = new DataInputStream(new FileInputStream(new File("paramFile")));
-                        dis.readFully(iv);
-                        if (dis != null) {
-                            mapOfIV.put("IV",iv);
-                            dis.close();
-                        }
-                    }
-                    else
-                        iv = mapOfIV.get("IV");
+                    byte[] iv = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8 };
+                    // byte[] iv = new byte[16];
+                    // if(!mapOfIV.containsKey("IV"))
+                    // {
+                    //     DataInputStream dis = null;
+                    //     dis = new DataInputStream(new FileInputStream(new File("paramFile")));
+                    //     dis.readFully(iv);
+                    //     if (dis != null) {
+                    //         mapOfIV.put("IV",iv);
+                    //         dis.close();
+                    //     }
+                    // }
+                    // else
+                    //     iv = mapOfIV.get("IV");
                     //System.out.println("iv.length = "+iv.length);
                     String idPass = decrypt(aesAlgorithm, userCredentailsCipherText, secretKey, new IvParameterSpec(iv));
                     //SHA1 reference : http://oliviertech.com/java/generate-SHA1-hash-from-a-String/
@@ -151,7 +153,7 @@ public class JavaSSLServer {
                     
                     
                 }
-                else if(line.indexOf("~") >= 0){
+                if(line.indexOf("~") >= 0){
                     String[] arr = line.split("~");
                     //out.println(encryptedSymmKey+"|"+userCredentailsCipherText);
                     String encryptedSymmKey = arr[0];
@@ -164,19 +166,20 @@ public class JavaSSLServer {
                     String aesAlgorithm = "AES/CBC/PKCS5Padding";
                     SecretKey secretKey = convertStringToSecretKeyto(decryptedSymmKey);
                     //byte[] iv = decryptedSymmKey.split("--")[1].getBytes(StandardCharsets.UTF_8);
-                    byte[] iv = new byte[16];
-                    if(!mapOfIV.containsKey("IV"))
-                    {
-                        DataInputStream dis = null;
-                        dis = new DataInputStream(new FileInputStream(new File("paramFile")));
-                        dis.readFully(iv);
-                        if (dis != null) {
-                            mapOfIV.put("IV",iv);
-                            dis.close();
-                        }
-                    }
-                    else
-                        iv = mapOfIV.get("IV");
+                    //byte[] iv = new byte[16];
+                    byte[] iv = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8 };
+                    // if(!mapOfIV.containsKey("IV"))
+                    // {
+                    //     DataInputStream dis = null;
+                    //     dis = new DataInputStream(new FileInputStream(new File("paramFile")));
+                    //     dis.readFully(iv);
+                    //     if (dis != null) {
+                    //         mapOfIV.put("IV",iv);
+                    //         dis.close();
+                    //     }
+                    // }
+                    // else
+                    //     iv = mapOfIV.get("IV");
                     //System.out.println("iv.length = "+iv.length);
                     String balanceStr = decrypt(aesAlgorithm, balanceCipherText, secretKey, new IvParameterSpec(iv));
                     arr = balanceStr.split(" ");
@@ -208,13 +211,17 @@ public class JavaSSLServer {
                         out.println("0");
                     }
                 }
-                else//exit
+                if(line.equals("2"))//exit
                 {
-                    //socket.close();
+                    socket.close();
+                    break;
                 }
                     
             //System.out.println("Closed");
             
+        }
+        bufferedReader.close();
+        out.close();
         }
         }
          catch (Exception ex) {
