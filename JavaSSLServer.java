@@ -29,6 +29,8 @@ import javax.crypto.IllegalBlockSizeException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.*;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.security.KeyFactory;
 import java.util.Map;
 import java.util.HashMap;
@@ -44,6 +46,8 @@ import java.io.FileOutputStream;
 import java.security.KeyPairGenerator;
 import javax.crypto.SecretKey;
 import java.security.KeyPair;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 /**
  * CODE REFRENCE @web http://java-buddy.blogspot.com/
@@ -51,17 +55,19 @@ import java.security.KeyPair;
 public class JavaSSLServer {
     
     //static final int port = 7020;
-    static final Map<String, String> mapOfUserPass = new HashMap<>();
-    static final Map<String, Double> mapOfUserBalance = new HashMap<>();    
-    static final Map<String, byte[]> mapOfIV = new HashMap<>(); 
+//    static final Map<String, String> mapOfUserPass = new HashMap<>();
+    //static final Map<String, Double> mapOfUserBalance = new HashMap<>();    
+    //static final Map<String, byte[]> mapOfIV = new HashMap<>();
+    private static List<ClientHandler> lisOfClientHandlers = new ArrayList<>(); 
+    private static ExecutorService pool = Executors.newFixedThreadPool(100);
     public static void main(String[] args) {
         
         int port = -1;
         generateRSAKeyPairAndStoreInFile();
         System.setProperty("javax.net.ssl.keyStore", "mykeystore/trusted.examplekeystore");
         System.setProperty("javax.net.ssl.keyStorePassword", "password");
-        String currUser = "";
-        readPasswdFile();
+        //String currUser = "";
+        //readPasswdFile();
         //System.out.println("args size : "+args.length);
         if(args != null && args.length > 0){
             if(args[0] != null){
@@ -84,145 +90,22 @@ public class JavaSSLServer {
                 (SSLServerSocketFactory)SSLServerSocketFactory.getDefault();
         
         try {
-            ServerSocket sslServerSocket = 
-                    sslServerSocketFactory.createServerSocket(port);
+            ServerSocket sslServerSocket = sslServerSocketFactory.createServerSocket(port);
             System.out.println("SSL ServerSocket started");
             System.out.println(sslServerSocket.toString());
             while(!sslServerSocket.isClosed())
             {
-            Socket socket = sslServerSocket.accept();
+            Socket client = sslServerSocket.accept();
             System.out.println("ServerSocket accepted");
-            
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                String line;
-                while((line = bufferedReader.readLine()) != null)
-                {
-                    //System.out.println("Msg from client = "+line);
-                    if(line.indexOf("|") >= 0) //user credentials
-                    {
-                    String[] arr = line.split("\\|");
-                    //out.println(encryptedSymmKey+"|"+userCredentailsCipherText);
-                    String encryptedSymmKey = arr[0];
-                    String userCredentailsCipherText = arr[1];
-                    String decryptedSymmKey = decode(encryptedSymmKey);
-                    //System.out.println("encryptedSymmKey = "+encryptedSymmKey);
-                    //System.out.println("decryptedSymmKey = "+decryptedSymmKey);
-                    
-                    //IvParameterSpec ivParameterSpec = generateIv();
-                    String aesAlgorithm = "AES/CBC/PKCS5Padding";
-                    SecretKey secretKey = convertStringToSecretKeyto(decryptedSymmKey);
-                    //byte[] iv = decryptedSymmKey.split("--")[1].getBytes(StandardCharsets.UTF_8);
-                    byte[] iv = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8 };
-                    // byte[] iv = new byte[16];
-                    // if(!mapOfIV.containsKey("IV"))
-                    // {
-                    //     DataInputStream dis = null;
-                    //     dis = new DataInputStream(new FileInputStream(new File("paramFile")));
-                    //     dis.readFully(iv);
-                    //     if (dis != null) {
-                    //         mapOfIV.put("IV",iv);
-                    //         dis.close();
-                    //     }
-                    // }
-                    // else
-                    //     iv = mapOfIV.get("IV");
-                    //System.out.println("iv.length = "+iv.length);
-                    String idPass = decrypt(aesAlgorithm, userCredentailsCipherText, secretKey, new IvParameterSpec(iv));
-                    //SHA1 reference : http://oliviertech.com/java/generate-SHA1-hash-from-a-String/
-                    //String passwordSha1 = org.apache.commons.codec.digest.DigestUtils.sha1Hex(idPass.split(" ")[1]);
-                    String []user = idPass.split(" ");
-                    currUser = user[0];
-                    MessageDigest digest = MessageDigest.getInstance("SHA-1");
-                    digest.reset();
-                    digest.update(user[1].getBytes("utf8"));
-                    String passwordSha1 = String.format("%040x", new BigInteger(1, digest.digest()));
-                    if(mapOfUserPass.containsKey(user[0]))
-                    {
-                        if(mapOfUserPass.get(user[0]).equals(passwordSha1))
-                        {
-                            
-                            out.println("1"); //user valid
-                        }
-                        else
-                            out.println("0"); //password incorrect
-
-                    }
-                    else
-                        out.println("0"); //user not found in passwd file
-                    
-                    
-                }
-                if(line.indexOf("~") >= 0){
-                    String[] arr = line.split("~");
-                    //out.println(encryptedSymmKey+"|"+userCredentailsCipherText);
-                    String encryptedSymmKey = arr[0];
-                    String balanceCipherText = arr[1];
-                    String decryptedSymmKey = decode(encryptedSymmKey);
-                    //System.out.println("encryptedSymmKey = "+encryptedSymmKey);
-                    //System.out.println("decryptedSymmKey = "+decryptedSymmKey);
-                    
-                    //IvParameterSpec ivParameterSpec = generateIv();
-                    String aesAlgorithm = "AES/CBC/PKCS5Padding";
-                    SecretKey secretKey = convertStringToSecretKeyto(decryptedSymmKey);
-                    //byte[] iv = decryptedSymmKey.split("--")[1].getBytes(StandardCharsets.UTF_8);
-                    //byte[] iv = new byte[16];
-                    byte[] iv = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8 };
-                    // if(!mapOfIV.containsKey("IV"))
-                    // {
-                    //     DataInputStream dis = null;
-                    //     dis = new DataInputStream(new FileInputStream(new File("paramFile")));
-                    //     dis.readFully(iv);
-                    //     if (dis != null) {
-                    //         mapOfIV.put("IV",iv);
-                    //         dis.close();
-                    //     }
-                    // }
-                    // else
-                    //     iv = mapOfIV.get("IV");
-                    //System.out.println("iv.length = "+iv.length);
-                    String balanceStr = decrypt(aesAlgorithm, balanceCipherText, secretKey, new IvParameterSpec(iv));
-                    arr = balanceStr.split(" ");
-                    Double balOfCurrUser = getBalanceOfUser(currUser);
-                    if(balOfCurrUser >= Double.parseDouble(arr[1]))
-                    {
-                        // mapOfUserBalance.put(currUser, mapOfUserBalance.get(currUser)-Double.parseDouble(arr[1]));
-                        // mapOfUserBalance.put(arr[0], mapOfUserBalance.get(arr[0])+Double.parseDouble(arr[1]));
-                        Path file = Paths.get("passwd");
-                        // read all lines of the file
-                        long countLines = Files.lines(file).count();
-                        // System.out.println("countLines in passwd file = "+countLines);
-                        // System.out.println("Size of mapOfUserPass = "+mapOfUserPass.size());
-                        if(countLines > mapOfUserPass.size())
-                        {
-                            readPasswdFile();
-                        }
-                        if(mapOfUserPass.containsKey(arr[0])){
-                        Double balOfUser = getBalanceOfUser(arr[0]);
-                        
-                            updateBalanceOfUser(currUser, balOfCurrUser - Double.parseDouble(arr[1]));
-                            updateBalanceOfUser(arr[0], getBalanceOfUser(arr[0]) + Double.parseDouble(arr[1]));
-                            out.println("1");
-                        }
-                        else
-                            out.println("0");
-                    }
-                    else{
-                        out.println("0");
-                    }
-                }
-                if(line.equals("2"))//exit
-                {
-                    socket.close();
-                    break;
-                }
-                    
-            //System.out.println("Closed");
-            
-        }
-        bufferedReader.close();
-        out.close();
-        }
+            ClientHandler clientThread = new ClientHandler(client);
+            lisOfClientHandlers.add(clientThread);
+            pool.execute(clientThread);
+            // PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            // BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+         ///////////////////////////////////////////////////////////////////IN ClientHandler
+        // bufferedReader.close();
+        // out.close();
+            }
         }
          catch (Exception ex) {
             Logger.getLogger(JavaSSLServer.class.getName())
@@ -240,99 +123,7 @@ public class JavaSSLServer {
     }  
    
 }
-    private static Double getBalanceOfUser(String user)
-    {
-        Double ret = 0.0;
-        
-        try
-        {
-        String file ="balance";
-        
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
-        
-            while((line = reader.readLine()) != null)
-            {
-                String [] userInfo = line.split(" ");
-                if(userInfo.length == 2)
-                    if(userInfo[0].equals(user))
-                        {
-                            ret = Double.parseDouble(userInfo[1]);                            
-                            break;
-                        }
-           
-            }
-               
-        
-        reader.close();
-        
-        }
-        catch(IOException ex)
-        {
-            Logger.getLogger(JavaSSLServer.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
-        return ret;
-    }
-
-    private static void updateBalanceOfUser(String user, Double amount)
-    {
-        try
-        {
-        String file ="balance";
-        StringBuilder oldContent = new StringBuilder();
-        String userOldAmt = "";
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
-        
-            while((line = reader.readLine()) != null)
-            {
-                if(line.split(" ")[0].equals(user))
-                {
-                    userOldAmt = line.split(" ")[1];
-                }
-                oldContent.append(line+System.lineSeparator());
-            }
-        String newContent = oldContent.toString().replace(user+" "+userOldAmt, user+" "+amount);
-        FileWriter writer = new FileWriter(file);
-        writer.write(newContent);
-        
-        reader.close();
-        writer.close();
-        
-        }
-        catch(IOException ex)
-        {
-            Logger.getLogger(JavaSSLServer.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
-        
-    }
-
-    private static void readPasswdFile()
-    {
-        try
-        {
-        String file ="passwd";
-     
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
-        while((line = reader.readLine()) != null)
-        {
-            String [] user = line.split(" ");
-            if(user.length == 2)
-                mapOfUserPass.put(user[0],user[1]);
-        }
-        //System.out.println("In readPasswdFile --> map.get(alice) = "+mapOfUserPass.get("alice"));
-        reader.close();
-        }
-        catch(IOException ex)
-        {
-            Logger.getLogger(JavaSSLServer.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
-    }
-
+    
     private static void generateRSAKeyPairAndStoreInFile()
     {
         try{
@@ -341,7 +132,7 @@ public class JavaSSLServer {
         KeyPair pair = generator.generateKeyPair();
         PrivateKey privateKey = pair.getPrivate();
         PublicKey publicKey = pair.getPublic();
-        System.out.println("In generateRSAKeyPairAndStoreInFile");
+        //System.out.println("In generateRSAKeyPairAndStoreInFile");
         
         try (FileOutputStream fos = new FileOutputStream("public.key")) 
         {
@@ -370,42 +161,6 @@ public class JavaSSLServer {
         
     }
 
-private PrivateKey loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
-        // reading from resource folder
-        //byte[] privateKeyBytes = getClass().getResourceAsStream("/ssh_key").readAllBytes();
-        File privateKeyFile = new File("private.key");
-        byte[] privateKeyBytes = Files.readAllBytes(privateKeyFile.toPath());
-        KeyFactory privateKeyFactory = KeyFactory.getInstance("RSA");
-        EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-        PrivateKey privateKey = privateKeyFactory.generatePrivate(privateKeySpec);
-        return privateKey;
-    }
-public static String decode(String toDecode) throws Exception {
-
-        PrivateKey privateKey = new JavaSSLServer().loadPrivateKey();
-
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-
-        byte[] bytes = cipher.doFinal(Base64.getDecoder().decode(toDecode));
-        return new String(bytes);
-
-    }
-    public static SecretKey convertStringToSecretKeyto(String encodedKey) {
-    byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
-    SecretKey originalKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-    return originalKey;
-}
-public static String decrypt(String algorithm, String cipherText, SecretKey key,IvParameterSpec iv) throws NoSuchPaddingException, NoSuchAlgorithmException,
-    InvalidAlgorithmParameterException, InvalidKeyException,
-    BadPaddingException, IllegalBlockSizeException 
-    {    
-        Cipher cipher = Cipher.getInstance(algorithm);
-        cipher.init(Cipher.DECRYPT_MODE, key, iv);
-        byte[] plainText = cipher.doFinal(Base64.getDecoder()
-            .decode(cipherText));
-        return new String(plainText);
-    }
-    
+   
 }
