@@ -54,10 +54,6 @@ import java.util.concurrent.ExecutorService;
  */
 public class JavaSSLServer {
     
-    //static final int port = 7020;
-//    static final Map<String, String> mapOfUserPass = new HashMap<>();
-    //static final Map<String, Double> mapOfUserBalance = new HashMap<>();    
-    //static final Map<String, byte[]> mapOfIV = new HashMap<>();
     private static List<ClientHandler> lisOfClientHandlers = new ArrayList<>(); 
     private static ExecutorService pool = Executors.newFixedThreadPool(100);
     public static void main(String[] args) {
@@ -66,9 +62,7 @@ public class JavaSSLServer {
         generateRSAKeyPairAndStoreInFile();
         System.setProperty("javax.net.ssl.keyStore", "mykeystore/trusted.examplekeystore");
         System.setProperty("javax.net.ssl.keyStorePassword", "password");
-        //String currUser = "";
-        //readPasswdFile();
-        //System.out.println("args size : "+args.length);
+        
         if(args != null && args.length > 0){
             if(args[0] != null){
                 System.out.println("Port : "+args[0]);
@@ -100,11 +94,7 @@ public class JavaSSLServer {
             ClientHandler clientThread = new ClientHandler(client);
             lisOfClientHandlers.add(clientThread);
             pool.execute(clientThread);
-            // PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            // BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-         ///////////////////////////////////////////////////////////////////IN ClientHandler
-        // bufferedReader.close();
-        // out.close();
+            
             }
         }
          catch (Exception ex) {
@@ -116,7 +106,7 @@ public class JavaSSLServer {
     public static Set<String> listFilesUsingFilesList(String dir) throws IOException {
     try (Stream<Path> stream = Files.list(Paths.get(dir))) {
         return stream
-          //.filter(file -> !Files.isDirectory(file))
+          
           .map(Path::getFileName)
           .map(Path::toString)
           .collect(Collectors.toSet());
@@ -132,7 +122,7 @@ public class JavaSSLServer {
         KeyPair pair = generator.generateKeyPair();
         PrivateKey privateKey = pair.getPrivate();
         PublicKey publicKey = pair.getPublic();
-        //System.out.println("In generateRSAKeyPairAndStoreInFile");
+        
         
         try (FileOutputStream fos = new FileOutputStream("public.key")) 
         {

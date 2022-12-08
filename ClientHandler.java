@@ -66,25 +66,22 @@ public class ClientHandler implements Runnable
                String currUser = "";
                 while((line = bufferedReader.readLine()) != null)
                 {
-                    //System.out.println("Msg from client = "+line);
+                    
                     if(line.indexOf("|") >= 0) //user credentials
                     {
                     String[] arr = line.split("\\|");
-                    //out.println(encryptedSymmKey+"|"+userCredentailsCipherText);
+                    
                     String encryptedSymmKey = arr[0];
                     String userCredentailsCipherText = arr[1];
                     String decryptedSymmKey = decode(encryptedSymmKey);
-                    //System.out.println("encryptedSymmKey = "+encryptedSymmKey);
-                    //System.out.println("decryptedSymmKey = "+decryptedSymmKey);
                     
-                    //IvParameterSpec ivParameterSpec = generateIv();
                     String aesAlgorithm = "AES/CBC/PKCS5Padding";
                     SecretKey secretKey = convertStringToSecretKeyto(decryptedSymmKey);
-                    //byte[] iv = decryptedSymmKey.split("--")[1].getBytes(StandardCharsets.UTF_8);
+                    
                     byte[] iv = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8 };
                     String idPass = decrypt(aesAlgorithm, userCredentailsCipherText, secretKey, new IvParameterSpec(iv));
                     //SHA1 reference : http://oliviertech.com/java/generate-SHA1-hash-from-a-String/
-                    //String passwordSha1 = org.apache.commons.codec.digest.DigestUtils.sha1Hex(idPass.split(" ")[1]);
+                    
                     String []user = idPass.split(" ");
                     currUser = user[0];
                     MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -109,14 +106,11 @@ public class ClientHandler implements Runnable
                 }
                 if(line.indexOf("~") >= 0){
                     String[] arr = line.split("~");
-                    //out.println(encryptedSymmKey+"|"+userCredentailsCipherText);
+                    
                     String encryptedSymmKey = arr[0];
                     String balanceCipherText = arr[1];
                     String decryptedSymmKey = decode(encryptedSymmKey);
-                    //System.out.println("encryptedSymmKey = "+encryptedSymmKey);
-                    //System.out.println("decryptedSymmKey = "+decryptedSymmKey);
                     
-                    //IvParameterSpec ivParameterSpec = generateIv();
                     String aesAlgorithm = "AES/CBC/PKCS5Padding";
                     SecretKey secretKey = convertStringToSecretKeyto(decryptedSymmKey);
                     
@@ -127,13 +121,11 @@ public class ClientHandler implements Runnable
                     Double balOfCurrUser = getBalanceOfUser(currUser);
                     if(balOfCurrUser >= Double.parseDouble(arr[1]))
                     {
-                        // mapOfUserBalance.put(currUser, mapOfUserBalance.get(currUser)-Double.parseDouble(arr[1]));
-                        // mapOfUserBalance.put(arr[0], mapOfUserBalance.get(arr[0])+Double.parseDouble(arr[1]));
+                        
                         Path file = Paths.get("passwd");
                         // read all lines of the file
                         long countLines = Files.lines(file).count();
-                        // System.out.println("countLines in passwd file = "+countLines);
-                        // System.out.println("Size of this.mapOfUserPass = "+this.mapOfUserPass.size());
+                        
                         if(countLines > this.mapOfUserPass.size())
                         {
                             readPasswdFile();
@@ -281,7 +273,7 @@ private String decode(String toDecode) throws Exception {
 private PrivateKey loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         // reading from resource folder
-        //byte[] privateKeyBytes = getClass().getResourceAsStream("/ssh_key").readAllBytes();
+        
         File privateKeyFile = new File("private.key");
         byte[] privateKeyBytes = Files.readAllBytes(privateKeyFile.toPath());
         KeyFactory privateKeyFactory = KeyFactory.getInstance("RSA");

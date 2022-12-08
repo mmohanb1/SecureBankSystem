@@ -46,7 +46,7 @@ public class JavaSSLClient {
         System.setProperty("javax.net.ssl.trustStore", "mykeystore/trusted.examplekeystore");
         System.setProperty("javax.net.ssl.trustStorePassword", "password");
         String currUser;
-        //System.out.println("args size : "+args.length);
+        
         if(args != null && args.length > 0){
             if(args[0] != null){
                 System.out.println("Server Domain : "+args[0]);
@@ -76,7 +76,7 @@ public class JavaSSLClient {
         SSLSocketFactory sslSocketFactory = 
                 (SSLSocketFactory)SSLSocketFactory.getDefault();
         try {
-            //Socket socket = sslSocketFactory.createSocket("localhost", port);
+            
             Socket socket = sslSocketFactory.createSocket(domain, port);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -96,20 +96,12 @@ public class JavaSSLClient {
 
                 //byte[] iv = new byte[16];
                 byte[] iv = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8 };
-                //new SecureRandom().nextBytes(iv);
-                //write iv to a file
-                // FileOutputStream fs = new FileOutputStream(new File("paramFile"));
-                // BufferedOutputStream bos = new BufferedOutputStream(fs);
-                // bos.write(iv);
-                // bos.close();
-                //return new IvParameterSpec(iv);
-                //System.out.println("iv.length = "+iv.length);
-//                String ivStr = iv.toString();
+                
                 SecretKey aesSymmetricKey = generateKey(128);
-                //IvParameterSpec ivParameterSpec = generateIv();
+                
                 String aesAlgorithm = "AES/CBC/PKCS5Padding";
                 String userCredentailsCipherText = encrypt(aesAlgorithm, idPass, aesSymmetricKey, new IvParameterSpec(iv));
-                //System.out.println("userCredentailsCipherText = "+userCredentailsCipherText);
+                
 
                 //2. encrypt the symmetric key & iv bytes using public key
                 String strAesSymmetricKey = convertSecretKeyToString(aesSymmetricKey);
@@ -167,8 +159,7 @@ public class JavaSSLClient {
                     else if(option.equals("2")) //exit
                     {
                         out.println("2");
-                        //bufferedReader.close();
-                        //out.close();
+                        
                         socket.close();
                         break;
 
@@ -243,7 +234,7 @@ public class JavaSSLClient {
     private PublicKey loadPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         // reading from resource folder
-        //byte[] publicKeyBytes = getClass().getResourceAsStream("/ssh_key.pub").readAllBytes();
+        
         File publicKeyFile = new File("public.key");
         byte[] publicKeyBytes = Files.readAllBytes(publicKeyFile.toPath());
         KeyFactory publicKeyFactory = KeyFactory.getInstance("RSA");
@@ -256,7 +247,7 @@ public class JavaSSLClient {
 
     public static String encode(String toEncode) throws Exception {
 
-        //System.out.println("toEncode = "+toEncode);
+        
         PublicKey publicKey = new JavaSSLClient().loadPublicKey();
 
         Cipher cipher = Cipher.getInstance("RSA");
